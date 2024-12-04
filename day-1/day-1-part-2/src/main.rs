@@ -3,12 +3,17 @@ mod input_line;
 use crate::input_line::InputLine;
 use std::fs;
 use std::str::FromStr;
+use std::time::Instant;
 
 fn main() {
+    let load_and_parse_time = Instant::now();
+
     let sorted_vecs = read_input_into_sorted_vecs("./input.txt");
 
-    println!("Parsed {} lines", sorted_vecs.right.len());
+    println!("Loaded and parsed {} lines in {}us", sorted_vecs.right.len(), load_and_parse_time.elapsed().as_micros());
 
+
+    let match_time = Instant::now();
     let mut total_similarity_score = 0;
     let mut curr_index = 0;
     let mut prev_value = 0;
@@ -23,7 +28,7 @@ fn main() {
         prev_value = left_item;
     }
 
-    println!("Total similarity score: {}", total_similarity_score);
+    println!("Total similarity score: {} in {}us", total_similarity_score, match_time.elapsed().as_micros());
 }
 
 fn match_score(input: i32, list: &Vec<i32>, index: usize) -> CountMatches {
