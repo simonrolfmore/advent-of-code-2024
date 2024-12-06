@@ -13,7 +13,7 @@ fn main() {
         let second_num:i32 = regex_match["second_num"].parse().unwrap();
 
         if verbose {
-            println!("First num: {}, second num {}", first_num, second_num);
+            println!("Found a mul! First num: {}, second num: {}", first_num, second_num);
         }
 
         total += first_num * second_num;
