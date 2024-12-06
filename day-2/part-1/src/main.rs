@@ -11,19 +11,20 @@ fn main() {
     let run_time = Instant::now();
     let mut safe_lines = 0;
     if let Ok(lines) = read_lines("./input.txt") {
-        for line in lines.flatten() {
-            let line_borrowed = &line;
-            let test_values = parse_line(line_borrowed);
+        //allows the line to be borrowed with into_iter()
+        for line in lines.flatten().into_iter() {
+
+            let test_values = parse_line(&line);
             let safety_reason = is_safe(test_values);
 
             if safety_reason.is_safe {
                 if verbose {
-                    println!("Line {line_borrowed} is safe");
+                    println!("Line {line} is safe");
                 }
                 safe_lines += 1;
             } else {
                 if verbose {
-                    println!("Line {line_borrowed} is not safe: {}", safety_reason.reason);
+                    println!("Line {line} is not safe: {}", safety_reason.reason);
                 }
             }
         }

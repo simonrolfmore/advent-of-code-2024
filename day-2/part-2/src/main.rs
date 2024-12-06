@@ -6,19 +6,20 @@ use std::path::Path;
 use std::time::Instant;
 
 fn main() {
-    let verbose = true; //config for reasons output, too lazy to do it properly
+    let verbose = false; //config for reasons output, too lazy to do it properly
 
     let run_time = Instant::now();
     let mut safe_lines = 0;
     if let Ok(lines) = read_lines("./input.txt") {
-        for line in lines.flatten() {
-            let line_borrowed = &line;
-            let test_values = parse_line(line_borrowed);
+        //allows the line to be borrowed with into_iter()
+        for line in lines.flatten().into_iter() {
+
+            let test_values = parse_line(&line);
             let safety_reason = is_safe(&test_values);
 
             if safety_reason.is_safe {
                 if verbose {
-                    println!("Line {line_borrowed} is safe");
+                    println!("Line {line} is safe");
                 }
                 safe_lines += 1;
             } else {
@@ -26,12 +27,12 @@ fn main() {
                 if safety_reason_retried.is_safe
                 {
                     if verbose {
-                        println!("Line {line_borrowed} is safe after retry {}", safety_reason_retried.reason);
+                        println!("Line {line} is safe after retry {}", safety_reason_retried.reason);
                     }
                     safe_lines += 1;
                 }
                 if verbose {
-                    println!("Tried skipping all values and line {line_borrowed} still isn't safe: {}", safety_reason_retried.reason);
+                    println!("Tried skipping all values and line {line} still isn't safe: {}", safety_reason_retried.reason);
                 }
             }
         }
