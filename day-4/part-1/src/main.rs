@@ -10,128 +10,100 @@ fn main() {
     let mut xmas_count = 0;
     let mut line_index = 0;
     while line_index < lines_vec.len() {
-        let mut char_index = find_next_x(&lines_vec, line_index, 0);
-        while char_index < lines_vec[line_index].len() {
+        let line_index_i32 = line_index as i32;
+        let line_len = lines_vec[line_index].len();
+
+        let mut char_index = find_next_x(&lines_vec, line_index, 0, line_len);
+
+        while char_index < line_len {
             x_count += 1;
 
-            xmas_count += count_xmases_from_x(lines_vec, line_index, char_index);
+            xmas_count += count_xmases_from_x(lines_vec, line_index_i32, char_index as i32);
 
-            char_index = find_next_x(&lines_vec, line_index, char_index + 1); //skip over the actual character found
+            char_index = find_next_x(&lines_vec, line_index, char_index + 1, line_len); //skip over the actual character found
         }
         line_index += 1;
     }
     println!("Found {x_count} xes, and {xmas_count} xmases.");
 }
 
-fn count_xmases_from_x(search: &Vec<String>, y_offset: usize, x_offset: usize) -> i32
+fn count_xmases_from_x(search: &Vec<String>, y_offset: i32, x_offset: i32) -> i32
 {
     let mut found_count = 0;
-    if find_xmas_left_to_right(search, y_offset, x_offset)
+    for direction in DIRECTIONS
+    //let direction = &DIRECTIONS[2]; //test finding XMAS horizontally
+    //let direction = &DIRECTIONS[6]; //test finding SAMX horizontally
     {
-        found_count += 1;
-    }
-    if find_xmas_right_to_left(search, y_offset, x_offset)
-    {
-        found_count += 1;
-    }
-    if find_xmas_top_to_bottom(search, y_offset, x_offset)
-    {
-        found_count += 1;
-    }
-    if find_xmas_bottom_to_top(search, y_offset, x_offset)
-    {
-        found_count += 1;
+        if find_xmas(search, y_offset, x_offset, &direction)
+        {
+            found_count += 1;
+        }
     }
 
     found_count
 }
 
-//this entire set of functions suck, but hey
-fn find_xmas_left_to_right(search: &Vec<String>, y_offset: usize, x_offset: usize) -> bool
-{
-    let line = &search[y_offset];
-    if x_offset > (line.len() - 4) // can't get Xmas without having enough room
-    {
-        return false;
-    }
-    if &line[x_offset..x_offset + 4] == XMAS_STRING
-    {
-        return true;
-    }
-
-    false
+struct DirectionElem {
+    y_increment: i32,
+    x_increment: i32
 }
 
-fn find_xmas_right_to_left(search: &Vec<String>, y_offset: usize, x_offset: usize) -> bool
+const DIRECTIONS: [DirectionElem; 8] = [
+    DirectionElem { y_increment: -1, x_increment:  0}, //North
+    DirectionElem { y_increment: -1, x_increment:  1}, //Northeast
+    DirectionElem { y_increment:  0, x_increment:  1}, //East
+    DirectionElem { y_increment:  1, x_increment:  1}, //Southeast
+    DirectionElem { y_increment:  1, x_increment:  0}, //South
+    DirectionElem { y_increment:  1, x_increment: -1}, //Southwest
+    DirectionElem { y_increment:  0, x_increment: -1}, //West
+    DirectionElem { y_increment: -1, x_increment: -1}, //Northwest
+];
+
+fn find_xmas(search: &Vec<String>, y_offset: i32, x_offset: i32, direction: &DirectionElem) -> bool
 {
-    let line = &search[y_offset];
-    if x_offset < 3 // can't get Xmas without having enough room
+    //guard band
+    if direction.y_increment.is_positive() && (y_offset > (search.len() - 5) as i32)
     {
         return false;
     }
-    if line[x_offset - 1..x_offset] == XMAS_STRING[1..2]
+    if direction.y_increment.is_negative() && y_offset < 3
     {
-        if line[x_offset - 2 .. x_offset - 1] == XMAS_STRING[2..3]
+        return false;
+    }
+    let x_offset_usize = x_offset as usize;
+    if direction.x_increment.is_positive() && x_offset_usize > (search[x_offset_usize].len() - 4)
+    {
+        return false;
+    }
+    if direction.x_increment.is_negative() && x_offset < 3
+    {
+        return false;
+    }
+
+    for i  in 1..4 {
+        let line_num = (y_offset + (direction.y_increment * i)) as usize;
+        let line = &search[line_num];
+        let offset = (x_offset + (direction.x_increment * i)) as usize;
+        let check_char = &line[offset..offset + 1];
+        let xmas_char = &XMAS_STRING[(i as usize)..(i+1) as usize];
+        if check_char != xmas_char
         {
-            if line[x_offset - 3 .. x_offset - 2] == XMAS_STRING[3..4]
-            {
-                return true;
-            }
+            return false;
         }
     }
 
-    false
+    println!("Found XMAS on line {}, char {}, direction y-increment {}, direction x-increment {}", y_offset + 1, x_offset + 1, direction.y_increment, direction.x_increment);
+
+    true
 }
 
-fn find_xmas_top_to_bottom(search: &Vec<String>, y_offset: usize, x_offset: usize) -> bool
-{
-    if y_offset > (search.len() - 5)
-    {
-        return false;
-    }
-
-    if search[y_offset + 1][x_offset..x_offset + 1] == XMAS_STRING[1..2]
-    {
-        if search[y_offset + 2][x_offset..x_offset + 1] == XMAS_STRING[2..3]
-        {
-            if search[y_offset + 3][x_offset..x_offset + 1] == XMAS_STRING[3..4]
-            {
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-fn find_xmas_bottom_to_top(search: &Vec<String>, y_offset: usize, x_offset: usize) -> bool
-{
-    if y_offset < 4
-    {
-        return false;
-    }
-
-    if search[y_offset - 1][x_offset..x_offset + 1] == XMAS_STRING[1..2]
-    {
-        if search[y_offset - 2][x_offset..x_offset + 1] == XMAS_STRING[2..3]
-        {
-            if search[y_offset - 3][x_offset..x_offset + 1] == XMAS_STRING[3..4]
-            {
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-fn find_next_x(search: &Vec<String>, y_offset: usize, x_offset: usize) -> usize
+fn find_next_x(search: &Vec<String>, y_offset: usize, x_offset: usize, line_len: usize) -> usize
 {
     let find_result = search[y_offset][x_offset..].find("X");
     match find_result
     {
         Some(x) => x + x_offset,
-        None => search.len()
+        None => line_len
     }
 }
 
