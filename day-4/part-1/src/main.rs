@@ -39,7 +39,6 @@ fn count_xmases_from_x(search: &Vec<String>, y_offset: i32, x_offset: i32) -> i3
             found_count += 1;
         }
     }
-
     found_count
 }
 
@@ -61,7 +60,7 @@ const DIRECTIONS: [DirectionElem; 8] = [
 
 fn find_xmas(search: &Vec<String>, y_offset: i32, x_offset: i32, direction: &DirectionElem) -> bool
 {
-    //guard band
+    //guard band, wow this took a long tim to get right, and I'm still not entirely sold that it makes sense
     if direction.y_increment.is_positive() && (y_offset > (search.len() - 5) as i32)
     {
         return false;
@@ -81,6 +80,9 @@ fn find_xmas(search: &Vec<String>, y_offset: i32, x_offset: i32, direction: &Dir
     }
 
     for i  in 1..4 {
+        /* these variables are all to make debugging easier - the RustRover debugger seems
+           to not have a decent evaluator so it was much easier to just watch them.
+         */
         let line_num = (y_offset + (direction.y_increment * i)) as usize;
         let line = &search[line_num];
         let offset = (x_offset + (direction.x_increment * i)) as usize;
